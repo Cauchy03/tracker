@@ -36,10 +36,10 @@ export default class Tracker {
 
   // 用户手动上报
   public sendTracker<T>(data: T) {
-    this.reportTracker({ data })
+    this.reportTracker(data)
   }
 
-  // 监听dom事件
+  // dom事件点击上报
   private targetKeyReport() {
     MouseEventList.forEach(event => {
       window.addEventListener(event, (e) => {
@@ -47,7 +47,7 @@ export default class Tracker {
         const target = e.target as HTMLElement
         const targetKey = target.getAttribute('target-key')
         // 判断是否存在 自定义 target-key
-        if(targetKey) {
+        if (targetKey) {
           // 如果存在 就上报后台
           this.reportTracker({
             event,
@@ -81,9 +81,43 @@ export default class Tracker {
     if (this.data.hashTracker) {
       this.captureEvent(['hashchange'], 'hash-pv')
     }
-    if(this.data.domTracker) {
+    if (this.data.domTracker) {
       this.targetKeyReport()
     }
+    if (this.data.jsError) {
+      this.jsError()
+    }
+  }
+
+  private jsError() {
+    this.errorEvent()
+    this.promiseReject()
+  }
+
+  //捕获js报错
+  private errorEvent() {
+    window.addEventListener('error', (event) => {
+      console.log(event)
+      this.sendTracker({
+        event: 'error',
+        targetKey: 'message',
+        message: event.message
+      })
+    })
+  }
+
+  //捕获promise 错误
+  private promiseReject() {
+    window.addEventListener('unhandledrejection', (event) => {
+      console.log(event)
+      event.promise.catch((error) => {
+        this.reportTracker({
+          event: 'promise_reject',
+          targetKey: 'message',
+          message: error
+        })
+      })
+    })
   }
 
   // 上报后台
@@ -95,5 +129,4 @@ export default class Tracker {
     let blob = new Blob([JSON.stringify(params)], headers)
     navigator.sendBeacon(this.data.requestUrl, blob) // navigator.sendBeacon() 只能传post
   }
-
 }
