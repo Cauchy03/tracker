@@ -20,6 +20,8 @@ const createHistoryEvent = (type) => {
     };
 };
 
+// dom 事件
+const MouseEventList = ['click', 'dblclick', 'contextmenu', 'mousedown', 'mouseup', 'mouseenter', 'mouseout', 'mouseover'];
 class Tracker {
     constructor(options) {
         // 用户传的属性与默认的属性合并
@@ -38,19 +40,97 @@ class Tracker {
             jsError: false
         };
     }
+    setUerId(uuid) {
+        this.data.uuid = uuid;
+    }
+    setExtra(extra) {
+        this.data.extra = extra;
+    }
+    // 用户手动上报
+    sendTracker(data) {
+        this.reportTracker(data);
+    }
+    // dom事件点击上报
+    targetKeyReport() {
+        MouseEventList.forEach(event => {
+            window.addEventListener(event, (e) => {
+                // 获取事件对象
+                const target = e.target;
+                const targetKey = target.getAttribute('target-key');
+                // 判断是否存在 自定义 target-key
+                if (targetKey) {
+                    // 如果存在 就上报后台
+                    this.reportTracker({
+                        event,
+                        targetKey
+                    });
+                }
+            });
+        });
+    }
     // 捕获器 监听事件函数
     captureEvent(mouseEventList, targetKey, data) {
         mouseEventList.forEach(event => {
             window.addEventListener(event, () => {
                 console.log('监听到了', event);
+                // 自动上报
+                this.reportTracker({
+                    event,
+                    targetKey,
+                    data
+                });
             });
         });
     }
     // 初始化函数
     installTracker() {
         if (this.data.historyTracker) {
-            this.captureEvent(['pushState', 'replaceState', 'popsState'], 'history-pv');
+            this.captureEvent(['pushState', 'replaceState', 'popstate'], 'history-pv');
         }
+        if (this.data.hashTracker) {
+            this.captureEvent(['hashchange'], 'hash-pv');
+        }
+        if (this.data.domTracker) {
+            this.targetKeyReport();
+        }
+        if (this.data.jsError) {
+            this.jsError();
+        }
+    }
+    jsError() {
+        this.errorEvent();
+        this.promiseReject();
+    }
+    errorEvent() {
+        window.addEventListener('error', (event) => {
+            console.log(event);
+            this.sendTracker({
+                event: 'error',
+                targetKey: 'message',
+                message: event.message
+            });
+        });
+    }
+    promiseReject() {
+        window.addEventListener('unhandledrejection', (event) => {
+            console.log(event);
+            event.promise.catch((error) => {
+                this.reportTracker({
+                    event: 'promise_reject',
+                    targetKey: 'message',
+                    message: error
+                });
+            });
+        });
+    }
+    // 上报后台
+    reportTracker(data) {
+        const params = Object.assign(this.data, data, { time: new Date().getTime() });
+        let headers = {
+            type: 'application/x-www-form-urlencoded'
+        };
+        let blob = new Blob([JSON.stringify(params)], headers);
+        navigator.sendBeacon(this.data.requestUrl, blob); // navigator.sendBeacon() 只能传post
     }
 }
 

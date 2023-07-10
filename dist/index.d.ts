@@ -25,8 +25,16 @@ declare class Tracker {
     data: Options;
     constructor(options: Options);
     private initDef;
+    setUerId<T extends DefaultOptions['uuid']>(uuid: T): void;
+    setExtra<T extends DefaultOptions['extra']>(extra: T): void;
+    sendTracker<T>(data: T): void;
+    private targetKeyReport;
     private captureEvent;
     private installTracker;
+    private jsError;
+    private errorEvent;
+    private promiseReject;
+    private reportTracker;
 }
 
 export { Tracker as default };
