@@ -23,6 +23,7 @@ export default class Tracker {
     }
   }
 
+  // 捕获器 监听事件函数
   private captureEvent<T>(mouseEventList: string[], targetKey: string, data?: T) {
     mouseEventList.forEach(event => {
       window.addEventListener(event, () => {
@@ -34,7 +35,10 @@ export default class Tracker {
   // 初始化函数
   private installTracker() {
     if (this.data.historyTracker) {
-      this.captureEvent(['pushState', 'replaceState', 'popsState'],'history-pv')
+      this.captureEvent(['pushState', 'replaceState', 'popstate'],'history-pv')
+    }
+    if (this.data.hashTracker) {
+      this.captureEvent(['hashchange'],'hash-pv')
     }
   }
 }
