@@ -1,6 +1,9 @@
 import { DefaultOptions, TrackerConfig, Options } from "../types/index";
 import { createHistoryEvent } from "../utils/pv";
 
+// dom 事件
+const MouseEventList: string[] = ['click', 'dblclick', 'contextmenu', 'mousedown', 'mouseup', 'mouseenter', 'mouseout', 'mouseover']
+
 export default class Tracker {
   public data: Options
 
@@ -33,7 +36,26 @@ export default class Tracker {
 
   // 用户手动上报
   public sendTracker<T>(data: T) {
-    this.reportTracker({data})
+    this.reportTracker({ data })
+  }
+
+  // 监听dom事件
+  private targetKeyReport() {
+    MouseEventList.forEach(event => {
+      window.addEventListener(event, (e) => {
+        // 获取事件对象
+        const target = e.target as HTMLElement
+        const targetKey = target.getAttribute('target-key')
+        // 判断是否存在 自定义 target-key
+        if(targetKey) {
+          // 如果存在 就上报后台
+          this.reportTracker({
+            event,
+            targetKey
+          })
+        }
+      })
+    })
   }
 
   // 捕获器 监听事件函数
@@ -58,6 +80,9 @@ export default class Tracker {
     }
     if (this.data.hashTracker) {
       this.captureEvent(['hashchange'], 'hash-pv')
+    }
+    if(this.data.domTracker) {
+      this.targetKeyReport()
     }
   }
 
