@@ -1,7 +1,7 @@
 # tracker
 
 ```
-import Tracker from 'zmy-tracker'
+import Tracker from 'cauchy-tracker'
 
 const tr = new Tracker({
     requestUrl:"xxxxxx"
