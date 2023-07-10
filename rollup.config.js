@@ -17,7 +17,7 @@ export default [
         input: "./src/core/index.ts",
         file: path.resolve(__dirname, './dist/index.js'), // 输出位置
         format: "umd", // 输出格式
-        name: "tracker"
+        name: "Tracker"
       }
     ],
     plugins: [

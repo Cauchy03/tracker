@@ -1,7 +1,7 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.tracker = factory());
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Tracker = factory());
 })(this, (function () { 'use strict';
 
   //版本
@@ -11,13 +11,14 @@
   })(TrackerConfig || (TrackerConfig = {}));
 
   const createHistoryEvent = (type) => {
-      console.log(type);
-      console.log(history);
+      // 保存原来的History事件
       const origin = history[type];
       return function () {
+          // 调用原先事件获取返回值
           const res = origin.apply(this, arguments);
+          // 创建事件
           const e = new Event(type);
-          console.log(e);
+          // 派发事件
           window.dispatchEvent(e);
           return res;
       };
@@ -41,6 +42,7 @@
               jsError: false
           };
       }
+      // 捕获器 监听事件函数
       captureEvent(mouseEventList, targetKey, data) {
           mouseEventList.forEach(event => {
               window.addEventListener(event, () => {
