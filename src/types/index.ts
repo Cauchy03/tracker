@@ -15,10 +15,10 @@ export interface DefaultOptions {
   domTracker: boolean,
   sdkVersion: string | number,
   extra: Record<string, any> | undefined,
-  jsError:boolean
+  jsError: boolean
 }
 
-export interface Options extends Partial<DefaultOptions>{
+export interface Options extends Partial<DefaultOptions> {
   requestUrl: string // 除requestUrl其他都是非必传的
 }
 
